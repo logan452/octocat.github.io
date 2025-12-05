@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Treasure Game</title>
+  <style>
+    body {
+      margin:0;
+      background:#0d0d0d;
+      color:#e0e0e0;
+      font-family:Arial, sans-serif;
+      text-align:center;
+    }
+
+    #titleScreen, #gameScreen { display:none; }
+
+    #titleScreen {
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      gap:25px;
+      background:linear-gradient(135deg, #000, #1c1c1c);
+    }
+
+    h1 {
+      font-size:3rem;
+      letter-spacing:3px;
+      text-shadow:0 0 10px #00f0ff;
+    }
+
+    #startBtn {
+      padding:14px 30px;
+      font-size:20px;
+      cursor:pointer;
+      background:#111;
+      color:#00f0ff;
+      border:2px solid #00f0ff;
+      border-radius:8px;
+      transition:0.2s;
+      box-shadow:0 0 10px #00f0ff66;
+    }
+
+    #startBtn:hover {
+      background:#00f0ff;
+      color:#000;
+      box-shadow:0 0 15px #00f0ff;
+    }
+
+    #gameScreen h2 {
+      margin-top:25px;
+      color:#00f0ff;
+      text-shadow:0 0 6px #00f0ff;
+    }
+
+    #board {
+      display:grid;
+      grid-template-columns:repeat(15, 40px);
+      grid-template-rows:repeat(15, 40px);
+      gap:4px;
+      width:max-content;
+      margin:20px auto;
+      padding:10px;
+      background:#111;
+      border:2px solid #00f0ff;
+      box-shadow:0 0 20px #00f0ff55;
+    }
+
+    .cell {
+      width:40px;
+      height:40px;
+      background:#1a1a1a;
+      border:1px solid #333;
+      border-radius:4px;
+      color:#00f0ff;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      font-size:14px;
+    }
+
+    .cell:hover {
+      background:#292929;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="titleScreen">
+  <h1>Treasure Game</h1>
+  <button id="startBtn">Start</button>
+</div>
+
+<div id="gameScreen">
+  <h2>Game Board</h2>
+  <div id="board"></div>
+</div>
+
+<script>
+  const titleScreen = document.getElementById("titleScreen");
+  const gameScreen = document.getElementById("gameScreen");
+  const board = document.getElementById("board");
+  const size = 15;
+
+  let p1 = { x:0, y:14 };
+  let p2 = { x:14, y:14 };
+
+  function drawBoard() {
+    board.innerHTML = "";
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+
+        if (x === p1.x && y === p1.y) cell.textContent = "P1";
+        if (x === p2.x && y === p2.y) cell.textContent = "P2";
+
+        board.appendChild(cell);
+      }
+    }
+  }
+
+  document.getElementById("startBtn").onclick = () => {
+    titleScreen.style.display = "none";
+    gameScreen.style.display = "block";
+    drawBoard();
+  };
+</script>
+
+</body>
+</html>
