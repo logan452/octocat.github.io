@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Treasure Game</title>
+  <title>Treasure Tax</title>
   <style>
     body {
       margin:0;
@@ -79,8 +79,33 @@
       font-size:14px;
     }
 
-    .cell:hover {
-      background:#292929;
+    .move-buttons {
+      margin-top:20px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+    }
+
+    .move-row {
+      display:flex;
+      gap:8px;
+    }
+
+    button {
+      padding:10px 20px;
+      background:#111;
+      color:#00f0ff;
+      border:2px solid #00f0ff;
+      border-radius:6px;
+      cursor:pointer;
+      transition:0.2s;
+    }
+
+    button:hover {
+      background:#00f0ff;
+      color:#000;
+      box-shadow:0 0 10px #00f0ff;
     }
   </style>
 </head>
@@ -88,13 +113,32 @@
 <body>
 
 <div id="titleScreen">
-  <h1>Treasure Game</h1>
+  <h1>Treasure Tax</h1>
   <button id="startBtn">Start</button>
 </div>
 
 <div id="gameScreen">
-  <h2>Game Board</h2>
+  <h2>Func Room</h2>
   <div id="board"></div>
+
+  <div class="move-buttons">
+    <div class="move-row">
+      <button onclick="movePlayer(1, 0, -1)">P1 Up</button>
+      <button onclick="movePlayer(2, 0, -1)">P2 Up</button>
+    </div>
+    <div class="move-row">
+      <button onclick="movePlayer(1, -1, 0)">P1 Left</button>
+      <button onclick="movePlayer(1, 1, 0)">P1 Right</button>
+    </div>
+    <div class="move-row">
+      <button onclick="movePlayer(2, -1, 0)">P2 Left</button>
+      <button onclick="movePlayer(2, 1, 0)">P2 Right</button>
+    </div>
+    <div class="move-row">
+      <button onclick="movePlayer(1, 0, 1)">P1 Down</button>
+      <button onclick="movePlayer(2, 0, 1)">P2 Down</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -112,13 +156,22 @@
       for (let x = 0; x < size; x++) {
         const cell = document.createElement("div");
         cell.className = "cell";
-
         if (x === p1.x && y === p1.y) cell.textContent = "P1";
         if (x === p2.x && y === p2.y) cell.textContent = "P2";
-
         board.appendChild(cell);
       }
     }
+  }
+
+  function movePlayer(player, dx, dy) {
+    if (player === 1) {
+      p1.x = Math.max(0, Math.min(size - 1, p1.x + dx));
+      p1.y = Math.max(0, Math.min(size - 1, p1.y + dy));
+    } else {
+      p2.x = Math.max(0, Math.min(size - 1, p2.x + dx));
+      p2.y = Math.max(0, Math.min(size - 1, p2.y + dy));
+    }
+    drawBoard();
   }
 
   document.getElementById("startBtn").onclick = () => {
