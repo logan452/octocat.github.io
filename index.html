@@ -47,17 +47,11 @@
       box-shadow:0 0 15px #00f0ff;
     }
 
-    #gameScreen h2 {
-      margin-top:25px;
-      color:#00f0ff;
-      text-shadow:0 0 6px #00f0ff;
-    }
-
     #board {
       display:grid;
-      grid-template-columns:repeat(15, 40px);
-      grid-template-rows:repeat(15, 40px);
-      gap:4px;
+      grid-template-columns:repeat(20, 40px);
+      grid-template-rows:repeat(20, 40px);
+      gap:3px;
       width:max-content;
       margin:20px auto;
       padding:10px;
@@ -71,41 +65,29 @@
       height:40px;
       background:#1a1a1a;
       border:1px solid #333;
-      border-radius:4px;
-      color:#00f0ff;
+      border-radius:3px;
       display:flex;
       justify-content:center;
       align-items:center;
-      font-size:14px;
+      color:#00f0ff;
+      font-size:12px;
     }
 
-    .move-buttons {
+    .wall {
+      background:#333;
+      border:1px solid #555;
+    }
+
+    #controls {
       margin-top:20px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:8px;
-    }
-
-    .move-row {
-      display:flex;
-      gap:8px;
     }
 
     button {
-      padding:10px 20px;
+      margin:5px;
+      padding:8px 15px;
       background:#111;
       color:#00f0ff;
-      border:2px solid #00f0ff;
-      border-radius:6px;
-      cursor:pointer;
-      transition:0.2s;
-    }
-
-    button:hover {
-      background:#00f0ff;
-      color:#000;
-      box-shadow:0 0 10px #00f0ff;
+      border:1px solid #00f0ff;
     }
   </style>
 </head>
@@ -114,48 +96,65 @@
 
 <div id="titleScreen">
   <h1>Treasure Tax</h1>
-  <button id="startBtn">Start</button>
+  <button id="startBtn">Enter Func Room</button>
 </div>
 
 <div id="gameScreen">
-  <h2>Func Room</h2>
+  <h2 style="color:#00f0ff;">Func Room</h2>
   <div id="board"></div>
 
-  <div class="move-buttons">
-    <div class="move-row">
-      <button onclick="movePlayer(1, 0, -1)">P1 Up</button>
-      <button onclick="movePlayer(2, 0, -1)">P2 Up</button>
-    </div>
-    <div class="move-row">
-      <button onclick="movePlayer(1, -1, 0)">P1 Left</button>
-      <button onclick="movePlayer(1, 1, 0)">P1 Right</button>
-    </div>
-    <div class="move-row">
-      <button onclick="movePlayer(2, -1, 0)">P2 Left</button>
-      <button onclick="movePlayer(2, 1, 0)">P2 Right</button>
-    </div>
-    <div class="move-row">
-      <button onclick="movePlayer(1, 0, 1)">P1 Down</button>
-      <button onclick="movePlayer(2, 0, 1)">P2 Down</button>
-    </div>
+  <div id="controls">
+    <h3>Player 1</h3>
+    <button onclick="movePlayer(1, 'up')">Up</button>
+    <button onclick="movePlayer(1, 'left')">Left</button>
+    <button onclick="movePlayer(1, 'right')">Right</button>
+    <button onclick="movePlayer(1, 'down')">Down</button>
+
+    <h3>Player 2</h3>
+    <button onclick="movePlayer(2, 'up')">Up</button>
+    <button onclick="movePlayer(2, 'left')">Left</button>
+    <button onclick="movePlayer(2, 'right')">Right</button>
+    <button onclick="movePlayer(2, 'down')">Down</button>
   </div>
 </div>
 
 <script>
-  const titleScreen = document.getElementById("titleScreen");
-  const gameScreen = document.getElementById("gameScreen");
+  const size = 20;
   const board = document.getElementById("board");
-  const size = 15;
 
-  let p1 = { x:0, y:14 };
-  let p2 = { x:14, y:14 };
+  let walls = [];
+
+  let p1 = { x: 0, y: size - 1 };
+  let p2 = { x: size - 1, y: size - 1 };
+
+  document.getElementById("startBtn").onclick = () => {
+    titleScreen.style.display = "none";
+    gameScreen.style.display = "block";
+    generateWalls();
+    drawBoard();
+  };
+
+  function generateWalls() {
+    walls = [];
+    for (let i = 0; i < 80; i++) {
+      let wx = Math.floor(Math.random() * size);
+      let wy = Math.floor(Math.random() * size);
+      if ((wx === p1.x && wy === p1.y) || (wx === p2.x && wy === p2.y)) continue;
+      walls.push({ x: wx, y: wy });
+    }
+  }
+
+  function isWall(x, y) {
+    return walls.some(w => w.x === x && w.y === y);
+  }
 
   function drawBoard() {
     board.innerHTML = "";
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const cell = document.createElement("div");
-        cell.className = "cell";
+        if (isWall(x, y)) cell.className = "cell wall";
+        else cell.className = "cell";
         if (x === p1.x && y === p1.y) cell.textContent = "P1";
         if (x === p2.x && y === p2.y) cell.textContent = "P2";
         board.appendChild(cell);
@@ -163,22 +162,24 @@
     }
   }
 
-  function movePlayer(player, dx, dy) {
-    if (player === 1) {
-      p1.x = Math.max(0, Math.min(size - 1, p1.x + dx));
-      p1.y = Math.max(0, Math.min(size - 1, p1.y + dy));
-    } else {
-      p2.x = Math.max(0, Math.min(size - 1, p2.x + dx));
-      p2.y = Math.max(0, Math.min(size - 1, p2.y + dy));
-    }
+  function movePlayer(num, direction) {
+    let p = num === 1 ? p1 : p2;
+    let nx = p.x;
+    let ny = p.y;
+
+    if (direction === "up") ny--;
+    if (direction === "down") ny++;
+    if (direction === "left") nx--;
+    if (direction === "right") nx++;
+
+    if (nx < 0 || ny < 0 || nx >= size || ny >= size) return;
+    if (isWall(nx, ny)) return;
+
+    p.x = nx;
+    p.y = ny;
+
     drawBoard();
   }
-
-  document.getElementById("startBtn").onclick = () => {
-    titleScreen.style.display = "none";
-    gameScreen.style.display = "block";
-    drawBoard();
-  };
 </script>
 
 </body>
