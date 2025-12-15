@@ -89,6 +89,12 @@
       color:#00f0ff;
       border:1px solid #00f0ff;
     }
+
+    #turn {
+      margin-top:10px;
+      color:#00f0ff;
+      font-size:18px;
+    }
   </style>
 </head>
 
@@ -103,29 +109,34 @@
   <h2 style="color:#00f0ff;">Func Room</h2>
   <div id="board"></div>
 
+  <div id="turn">Player 1 Turn</div>
+
   <div id="controls">
     <h3>Player 1</h3>
-    <button onclick="movePlayer(1, 'up')">Up</button>
-    <button onclick="movePlayer(1, 'left')">Left</button>
-    <button onclick="movePlayer(1, 'right')">Right</button>
-    <button onclick="movePlayer(1, 'down')">Down</button>
+    <button onclick="movePlayer(1,'up')">Up</button>
+    <button onclick="movePlayer(1,'left')">Left</button>
+    <button onclick="movePlayer(1,'right')">Right</button>
+    <button onclick="movePlayer(1,'down')">Down</button>
 
     <h3>Player 2</h3>
-    <button onclick="movePlayer(2, 'up')">Up</button>
-    <button onclick="movePlayer(2, 'left')">Left</button>
-    <button onclick="movePlayer(2, 'right')">Right</button>
-    <button onclick="movePlayer(2, 'down')">Down</button>
+    <button onclick="movePlayer(2,'up')">Up</button>
+    <button onclick="movePlayer(2,'left')">Left</button>
+    <button onclick="movePlayer(2,'right')">Right</button>
+    <button onclick="movePlayer(2,'down')">Down</button>
   </div>
 </div>
 
 <script>
   const size = 20;
   const board = document.getElementById("board");
+  const turnDisplay = document.getElementById("turn");
 
+  let currentTurn = 1;
   let walls = [];
 
   let p1 = { x: 0, y: size - 1 };
   let p2 = { x: size - 1, y: size - 1 };
+  let treasure = { x: Math.floor(size / 2), y: 0 };
 
   document.getElementById("startBtn").onclick = () => {
     titleScreen.style.display = "none";
@@ -140,6 +151,7 @@
       let wx = Math.floor(Math.random() * size);
       let wy = Math.floor(Math.random() * size);
       if ((wx === p1.x && wy === p1.y) || (wx === p2.x && wy === p2.y)) continue;
+      if (wx === treasure.x && wy === treasure.y) continue;
       walls.push({ x: wx, y: wy });
     }
   }
@@ -155,14 +167,18 @@
         const cell = document.createElement("div");
         if (isWall(x, y)) cell.className = "cell wall";
         else cell.className = "cell";
+        if (x === treasure.x && y === treasure.y) cell.textContent = "💰";
         if (x === p1.x && y === p1.y) cell.textContent = "P1";
         if (x === p2.x && y === p2.y) cell.textContent = "P2";
         board.appendChild(cell);
       }
     }
+    turnDisplay.textContent = `Player ${currentTurn} Turn`;
   }
 
   function movePlayer(num, direction) {
+    if (num !== currentTurn) return;
+
     let p = num === 1 ? p1 : p2;
     let nx = p.x;
     let ny = p.y;
@@ -178,6 +194,13 @@
     p.x = nx;
     p.y = ny;
 
+    if (p.x === treasure.x && p.y === treasure.y) {
+      alert(`Player ${num} wins!`);
+      location.reload();
+      return;
+    }
+
+    currentTurn = currentTurn === 1 ? 2 : 1;
     drawBoard();
   }
 </script>
