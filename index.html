@@ -11,9 +11,9 @@
       text-align:center;
     }
 
-    #titleScreen, #gameScreen { display:none; }
+    #titleScreen, #gameScreen, #winScreen { display:none; }
 
-    #titleScreen {
+    #titleScreen, #winScreen {
       display:flex;
       flex-direction:column;
       justify-content:center;
@@ -29,7 +29,7 @@
       text-shadow:0 0 10px #00f0ff;
     }
 
-    #startBtn {
+    #startBtn, #playAgainBtn {
       padding:14px 30px;
       font-size:20px;
       cursor:pointer;
@@ -41,7 +41,7 @@
       box-shadow:0 0 10px #00f0ff66;
     }
 
-    #startBtn:hover {
+    #startBtn:hover, #playAgainBtn:hover {
       background:#00f0ff;
       color:#000;
       box-shadow:0 0 15px #00f0ff;
@@ -49,8 +49,8 @@
 
     #board {
       display:grid;
-      grid-template-columns:repeat(20, 40px);
-      grid-template-rows:repeat(20, 40px);
+      grid-template-columns:repeat(15, 45px);
+      grid-template-rows:repeat(15, 45px);
       gap:3px;
       width:max-content;
       margin:20px auto;
@@ -61,8 +61,8 @@
     }
 
     .cell {
-      width:40px;
-      height:40px;
+      width:45px;
+      height:45px;
       background:#1a1a1a;
       border:1px solid #333;
       border-radius:3px;
@@ -126,30 +126,50 @@
   </div>
 </div>
 
+<div id="winScreen">
+  <h1 id="winnerText"></h1>
+  <button id="playAgainBtn">Play Again</button>
+</div>
+
 <script>
-  const size = 20;
+  const size = 15;
   const board = document.getElementById("board");
   const turnDisplay = document.getElementById("turn");
+  const winnerText = document.getElementById("winnerText");
 
   let currentTurn = 1;
   let walls = [];
 
-  let p1 = { x: 0, y: size - 1 };
-  let p2 = { x: size - 1, y: size - 1 };
-  let treasure = { x: Math.floor(size / 2), y: 0 };
+  let p1, p2, treasure;
+
+  function resetGame() {
+    currentTurn = 1;
+    p1 = { x: 0, y: size - 1 };
+    p2 = { x: size - 1, y: size - 1 };
+    treasure = { x: Math.floor(size / 2), y: 0 };
+    generateWalls();
+    drawBoard();
+  }
 
   document.getElementById("startBtn").onclick = () => {
     titleScreen.style.display = "none";
+    winScreen.style.display = "none";
     gameScreen.style.display = "block";
-    generateWalls();
-    drawBoard();
+    resetGame();
+  };
+
+  document.getElementById("playAgainBtn").onclick = () => {
+    winScreen.style.display = "none";
+    gameScreen.style.display = "block";
+    resetGame();
   };
 
   function generateWalls() {
     walls = [];
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 30; i++) {
       let wx = Math.floor(Math.random() * size);
       let wy = Math.floor(Math.random() * size);
+      if (wy === size - 1) continue;
       if ((wx === p1.x && wy === p1.y) || (wx === p2.x && wy === p2.y)) continue;
       if (wx === treasure.x && wy === treasure.y) continue;
       walls.push({ x: wx, y: wy });
@@ -165,8 +185,7 @@
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const cell = document.createElement("div");
-        if (isWall(x, y)) cell.className = "cell wall";
-        else cell.className = "cell";
+        cell.className = isWall(x, y) ? "cell wall" : "cell";
         if (x === treasure.x && y === treasure.y) cell.textContent = "💰";
         if (x === p1.x && y === p1.y) cell.textContent = "P1";
         if (x === p2.x && y === p2.y) cell.textContent = "P2";
@@ -195,8 +214,9 @@
     p.y = ny;
 
     if (p.x === treasure.x && p.y === treasure.y) {
-      alert(`Player ${num} wins!`);
-      location.reload();
+      gameScreen.style.display = "none";
+      winScreen.style.display = "flex";
+      winnerText.textContent = `Player ${num} Wins!`;
       return;
     }
 
