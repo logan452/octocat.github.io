@@ -29,28 +29,17 @@
       text-shadow:0 0 10px #00f0ff;
     }
 
-    .menuBtn {
+    .menuBtn, select {
       padding:14px 30px;
-      font-size:20px;
-      cursor:pointer;
+      font-size:18px;
       background:#111;
       color:#00f0ff;
       border:2px solid #00f0ff;
       border-radius:8px;
-      transition:0.2s;
-      box-shadow:0 0 10px #00f0ff66;
-    }
-
-    .menuBtn:hover {
-      background:#00f0ff;
-      color:#000;
-      box-shadow:0 0 15px #00f0ff;
     }
 
     #board {
       display:grid;
-      grid-template-columns:repeat(15, 45px);
-      grid-template-rows:repeat(15, 45px);
       gap:3px;
       width:max-content;
       margin:20px auto;
@@ -61,11 +50,10 @@
     }
 
     .cell {
-      width:45px;
-      height:45px;
+      width:40px;
+      height:40px;
       background:#1a1a1a;
       border:1px solid #333;
-      border-radius:3px;
       display:flex;
       justify-content:center;
       align-items:center;
@@ -76,18 +64,6 @@
     .wall {
       background:#333;
       border:1px solid #555;
-    }
-
-    #controls {
-      margin-top:20px;
-    }
-
-    button {
-      margin:5px;
-      padding:8px 15px;
-      background:#111;
-      color:#00f0ff;
-      border:1px solid #00f0ff;
     }
 
     #turn {
@@ -108,28 +84,18 @@
 
 <div id="settingsScreen">
   <h1>Settings</h1>
+  <select id="difficulty">
+    <option value="easy">Easy</option>
+    <option value="medium" selected>Medium</option>
+    <option value="hard">Tuff</option>
+  </select>
   <button class="menuBtn" id="backBtn">Back</button>
 </div>
 
 <div id="gameScreen">
   <h2 style="color:#00f0ff;">Func Room</h2>
   <div id="board"></div>
-
-  <div id="turn">Player 1 Turn</div>
-
-  <div id="controls">
-    <h3>Player 1</h3>
-    <button onclick="movePlayer(1,'up')">Up</button>
-    <button onclick="movePlayer(1,'left')">Left</button>
-    <button onclick="movePlayer(1,'right')">Right</button>
-    <button onclick="movePlayer(1,'down')">Down</button>
-
-    <h3>Player 2</h3>
-    <button onclick="movePlayer(2,'up')">Up</button>
-    <button onclick="movePlayer(2,'left')">Left</button>
-    <button onclick="movePlayer(2,'right')">Right</button>
-    <button onclick="movePlayer(2,'down')">Down</button>
-  </div>
+  <div id="turn"></div>
 </div>
 
 <div id="winScreen">
@@ -138,15 +104,39 @@
 </div>
 
 <script>
-  const size = 15;
+  let size = 13;
+  let wallCount = 20;
+
   const board = document.getElementById("board");
   const turnDisplay = document.getElementById("turn");
   const winnerText = document.getElementById("winnerText");
+  const difficultySelect = document.getElementById("difficulty");
 
   let currentTurn = 1;
   let walls = [];
-
   let p1, p2, treasure;
+
+  function applyDifficulty() {
+    const d = difficultySelect.value;
+
+    if (d === "easy") {
+      size = 11;
+      wallCount = 12;
+    }
+
+    if (d === "medium") {
+      size = 13;
+      wallCount = 20;
+    }
+
+    if (d === "hard") {
+      size = 17;
+      wallCount = 38;
+    }
+
+    board.style.gridTemplateColumns = `repeat(${size}, 40px)`;
+    board.style.gridTemplateRows = `repeat(${size}, 40px)`;
+  }
 
   function show(screen) {
     titleScreen.style.display = "none";
@@ -157,6 +147,7 @@
   }
 
   function resetGame() {
+    applyDifficulty();
     currentTurn = 1;
     p1 = { x: 0, y: size - 1 };
     p2 = { x: size - 1, y: size - 1 };
@@ -170,22 +161,23 @@
     resetGame();
   };
 
-  settingsBtn.onclick = () => show(settingsScreen);
-  backBtn.onclick = () => show(titleScreen);
-
   playAgainBtn.onclick = () => {
     show(gameScreen);
     resetGame();
   };
 
+  settingsBtn.onclick = () => show(settingsScreen);
+  backBtn.onclick = () => show(titleScreen);
+
   function generateWalls() {
     walls = [];
-    for (let i = 0; i < 30; i++) {
+    while (walls.length < wallCount) {
       let wx = Math.floor(Math.random() * size);
       let wy = Math.floor(Math.random() * size);
       if (wy === size - 1) continue;
       if ((wx === p1.x && wy === p1.y) || (wx === p2.x && wy === p2.y)) continue;
       if (wx === treasure.x && wy === treasure.y) continue;
+      if (walls.some(w => w.x === wx && w.y === wy)) continue;
       walls.push({ x: wx, y: wy });
     }
   }
@@ -236,6 +228,14 @@
     currentTurn = currentTurn === 1 ? 2 : 1;
     drawBoard();
   }
+
+  document.addEventListener("keydown", e => {
+    const k = e.key.toLowerCase();
+    if (k === "w") movePlayer(currentTurn, "up");
+    if (k === "s") movePlayer(currentTurn, "down");
+    if (k === "a") movePlayer(currentTurn, "left");
+    if (k === "d") movePlayer(currentTurn, "right");
+  });
 
   show(titleScreen);
 </script>
