@@ -66,6 +66,10 @@
       border:1px solid #555;
     }
 
+    .triggered {
+      background:#4a0000;
+    }
+
     #turn {
       margin-top:10px;
       color:#00f0ff;
@@ -87,7 +91,7 @@
   <select id="difficulty">
     <option value="easy">Easy</option>
     <option value="medium" selected>Medium</option>
-    <option value="hard">Tuff</option>
+    <option value="hard">Hard</option>
   </select>
   <button class="menuBtn" id="backBtn">Back</button>
 </div>
@@ -106,6 +110,7 @@
 <script>
   let size = 13;
   let wallCount = 20;
+  let spotCount = 6;
 
   const board = document.getElementById("board");
   const turnDisplay = document.getElementById("turn");
@@ -114,25 +119,16 @@
 
   let currentTurn = 1;
   let walls = [];
+  let spots = [];
+  let triggered = [];
   let p1, p2, treasure;
 
   function applyDifficulty() {
     const d = difficultySelect.value;
 
-    if (d === "easy") {
-      size = 11;
-      wallCount = 12;
-    }
-
-    if (d === "medium") {
-      size = 13;
-      wallCount = 20;
-    }
-
-    if (d === "hard") {
-      size = 17;
-      wallCount = 38;
-    }
+    if (d === "easy") { size = 11; wallCount = 12; spotCount = 4; }
+    if (d === "medium") { size = 13; wallCount = 20; spotCount = 6; }
+    if (d === "hard") { size = 17; wallCount = 38; spotCount = 9; }
 
     board.style.gridTemplateColumns = `repeat(${size}, 40px)`;
     board.style.gridTemplateRows = `repeat(${size}, 40px)`;
@@ -152,7 +148,9 @@
     p1 = { x: 0, y: size - 1 };
     p2 = { x: size - 1, y: size - 1 };
     treasure = { x: Math.floor(size / 2), y: 0 };
+    triggered = [];
     generateWalls();
+    generateSpots();
     drawBoard();
   }
 
@@ -182,8 +180,26 @@
     }
   }
 
+  function generateSpots() {
+    spots = [];
+    while (spots.length < spotCount) {
+      let sx = Math.floor(Math.random() * size);
+      let sy = Math.floor(Math.random() * size);
+      if (sy === size - 1) continue;
+      if (isWall(sx, sy)) continue;
+      if ((sx === p1.x && sy === p1.y) || (sx === p2.x && sy === p2.y)) continue;
+      if (sx === treasure.x && sy === treasure.y) continue;
+      if (spots.some(s => s.x === sx && s.y === sy)) continue;
+      spots.push({ x: sx, y: sy, effect: Math.random() < 0.5 ? -1 : 1 });
+    }
+  }
+
   function isWall(x, y) {
     return walls.some(w => w.x === x && w.y === y);
+  }
+
+  function spotAt(x, y) {
+    return spots.find(s => s.x === x && s.y === y);
   }
 
   function drawBoard() {
@@ -191,7 +207,9 @@
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const cell = document.createElement("div");
-        cell.className = isWall(x, y) ? "cell wall" : "cell";
+        cell.className = "cell";
+        if (isWall(x, y)) cell.classList.add("wall");
+        if (triggered.some(t => t.x === x && t.y === y)) cell.classList.add("triggered");
         if (x === treasure.x && y === treasure.y) cell.textContent = "💰";
         if (x === p1.x && y === p1.y) cell.textContent = "P1";
         if (x === p2.x && y === p2.y) cell.textContent = "P2";
@@ -218,6 +236,15 @@
 
     p.x = nx;
     p.y = ny;
+
+    let spot = spotAt(nx, ny);
+    if (spot && !triggered.some(t => t.x === nx && t.y === ny)) {
+      triggered.push({ x: nx, y: ny });
+      if (spot.effect === 1) currentTurn = num;
+      if (spot.effect === -1) currentTurn = num === 1 ? 2 : 1;
+      drawBoard();
+      return;
+    }
 
     if (p.x === treasure.x && p.y === treasure.y) {
       show(winScreen);
