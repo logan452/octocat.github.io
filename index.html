@@ -66,8 +66,14 @@
       border:1px solid #555;
     }
 
-    .triggered {
+    .gain {
+      background:#003d1f;
+      box-shadow:0 0 8px #00ff88;
+    }
+
+    .lose {
       background:#4a0000;
+      box-shadow:0 0 8px #ff4444;
     }
 
     #turn {
@@ -104,7 +110,6 @@
 
 <div id="winScreen">
   <h1 id="winnerText"></h1>
-  <button class="menuBtn" id="playAgainBtn">Play Again</button>
 </div>
 
 <script>
@@ -125,7 +130,6 @@
 
   function applyDifficulty() {
     const d = difficultySelect.value;
-
     if (d === "easy") { size = 11; wallCount = 12; spotCount = 4; }
     if (d === "medium") { size = 13; wallCount = 20; spotCount = 6; }
     if (d === "hard") { size = 17; wallCount = 38; spotCount = 9; }
@@ -155,11 +159,6 @@
   }
 
   startBtn.onclick = () => {
-    show(gameScreen);
-    resetGame();
-  };
-
-  playAgainBtn.onclick = () => {
     show(gameScreen);
     resetGame();
   };
@@ -202,6 +201,10 @@
     return spots.find(s => s.x === x && s.y === y);
   }
 
+  function triggeredAt(x, y) {
+    return triggered.find(t => t.x === x && t.y === y);
+  }
+
   function drawBoard() {
     board.innerHTML = "";
     for (let y = 0; y < size; y++) {
@@ -209,7 +212,10 @@
         const cell = document.createElement("div");
         cell.className = "cell";
         if (isWall(x, y)) cell.classList.add("wall");
-        if (triggered.some(t => t.x === x && t.y === y)) cell.classList.add("triggered");
+
+        const t = triggeredAt(x, y);
+        if (t) cell.classList.add(t.effect === 1 ? "gain" : "lose");
+
         if (x === treasure.x && y === treasure.y) cell.textContent = "💰";
         if (x === p1.x && y === p1.y) cell.textContent = "P1";
         if (x === p2.x && y === p2.y) cell.textContent = "P2";
@@ -238,17 +244,16 @@
     p.y = ny;
 
     let spot = spotAt(nx, ny);
-    if (spot && !triggered.some(t => t.x === nx && t.y === ny)) {
-      triggered.push({ x: nx, y: ny });
-      if (spot.effect === 1) currentTurn = num;
-      if (spot.effect === -1) currentTurn = num === 1 ? 2 : 1;
+    if (spot && !triggeredAt(nx, ny)) {
+      triggered.push({ x: nx, y: ny, effect: spot.effect });
+      currentTurn = spot.effect === 1 ? num : num === 1 ? 2 : 1;
       drawBoard();
       return;
     }
 
     if (p.x === treasure.x && p.y === treasure.y) {
-      show(winScreen);
       winnerText.textContent = `Player ${num} Wins!`;
+      show(settingsScreen);
       return;
     }
 
