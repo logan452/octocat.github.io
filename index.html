@@ -1,275 +1,303 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Treasure Tax</title>
-  <style>
-    body {
-      margin:0;
-      background:#0d0d0d;
-      color:#e0e0e0;
-      font-family:Arial, sans-serif;
-      text-align:center;
-    }
+<title>Treasure Tax</title>
+<style>
+body {
+margin:0;
+background:#0d0d0d;
+color:#e0e0e0;
+font-family:Arial, sans-serif;
+text-align:center;
+}
 
-    #titleScreen, #gameScreen, #winScreen, #settingsScreen { display:none; }
+#titleScreen, #gameScreen, #winScreen, #settingsScreen { display:none; }
 
-    #titleScreen, #winScreen, #settingsScreen {
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      gap:25px;
-      background:linear-gradient(135deg, #000, #1c1c1c);
-    }
+#titleScreen, #settingsScreen {
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+height:100vh;
+gap:25px;
+background:linear-gradient(135deg, #000, #1c1c1c);
+}
 
-    h1 {
-      font-size:3rem;
-      letter-spacing:3px;
-      text-shadow:0 0 10px #00f0ff;
-    }
+#winScreen {
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+height:100vh;
+background:#000;
+animation:flash 1s ease-in-out infinite alternate;
+}
 
-    .menuBtn, select {
-      padding:14px 30px;
-      font-size:18px;
-      background:#111;
-      color:#00f0ff;
-      border:2px solid #00f0ff;
-      border-radius:8px;
-    }
+@keyframes flash {
+from { background:#000; }
+to { background:#002b2b; }
+}
 
-    #board {
-      display:grid;
-      gap:3px;
-      width:max-content;
-      margin:20px auto;
-      padding:10px;
-      background:#111;
-      border:2px solid #00f0ff;
-      box-shadow:0 0 20px #00f0ff55;
-    }
+h1 {
+font-size:3rem;
+letter-spacing:3px;
+text-shadow:0 0 10px #00f0ff;
+}
 
-    .cell {
-      width:40px;
-      height:40px;
-      background:#1a1a1a;
-      border:1px solid #333;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      color:#00f0ff;
-      font-size:12px;
-    }
+#winText {
+font-size:4rem;
+color:#00f0ff;
+animation:winPop 1.2s ease forwards;
+text-shadow:0 0 25px #00f0ff;
+}
 
-    .wall {
-      background:#333;
-      border:1px solid #555;
-    }
+@keyframes winPop {
+from { transform:scale(0.6); opacity:0; }
+to { transform:scale(1); opacity:1; }
+}
 
-    .gain {
-      background:#003d1f;
-      box-shadow:0 0 8px #00ff88;
-    }
+.menuBtn, select {
+padding:14px 30px;
+font-size:18px;
+background:#111;
+color:#00f0ff;
+border:2px solid #00f0ff;
+border-radius:8px;
+}
 
-    .lose {
-      background:#4a0000;
-      box-shadow:0 0 8px #ff4444;
-    }
+#board {
+display:grid;
+gap:3px;
+width:max-content;
+margin:20px auto;
+padding:10px;
+background:#111;
+border:2px solid #00f0ff;
+box-shadow:0 0 20px #00f0ff55;
+}
 
-    #turn {
-      margin-top:10px;
-      color:#00f0ff;
-      font-size:18px;
-    }
-  </style>
+.cell {
+width:40px;
+height:40px;
+background:#1a1a1a;
+border:1px solid #333;
+display:flex;
+justify-content:center;
+align-items:center;
+color:#00f0ff;
+font-size:12px;
+}
+
+.wall {
+background:#333;
+border:1px solid #555;
+}
+
+.gain {
+background:#003d1f;
+box-shadow:0 0 8px #00ff88;
+}
+
+.lose {
+background:#4a0000;
+box-shadow:0 0 8px #ff4444;
+}
+
+#turn {
+margin-top:10px;
+color:#00f0ff;
+font-size:18px;
+}
+</style>
 </head>
 
 <body>
 
 <div id="titleScreen">
-  <h1>Treasure Tax</h1>
-  <button class="menuBtn" id="startBtn">Enter Func Room</button>
-  <button class="menuBtn" id="settingsBtn">Settings</button>
+<h1>Treasure Tax</h1>
+<button class="menuBtn" id="startBtn">Enter Func Room</button>
+<button class="menuBtn" id="settingsBtn">Settings</button>
 </div>
 
 <div id="settingsScreen">
-  <h1>Settings</h1>
-  <select id="difficulty">
-    <option value="easy">Easy</option>
-    <option value="medium" selected>Medium</option>
-    <option value="hard">Hard</option>
-  </select>
-  <button class="menuBtn" id="backBtn">Back</button>
+<h1>Settings</h1>
+<select id="difficulty">
+<option value="easy">Easy</option>
+<option value="medium" selected>Medium</option>
+<option value="hard">Hard</option>
+</select>
+<button class="menuBtn" id="backBtn">Back</button>
 </div>
 
 <div id="gameScreen">
-  <h2 style="color:#00f0ff;">Func Room</h2>
-  <div id="board"></div>
-  <div id="turn"></div>
+<h2 style="color:#00f0ff;">Func Room</h2>
+<div id="board"></div>
+<div id="turn"></div>
 </div>
 
 <div id="winScreen">
-  <h1 id="winnerText"></h1>
+<div id="winText"></div>
 </div>
 
 <script>
-  let size = 13;
-  let wallCount = 20;
-  let spotCount = 6;
+let size = 13;
+let wallCount = 20;
+let spotCount = 6;
 
-  const board = document.getElementById("board");
-  const turnDisplay = document.getElementById("turn");
-  const winnerText = document.getElementById("winnerText");
-  const difficultySelect = document.getElementById("difficulty");
+const board = document.getElementById("board");
+const turnDisplay = document.getElementById("turn");
+const winText = document.getElementById("winText");
+const difficultySelect = document.getElementById("difficulty");
 
-  let currentTurn = 1;
-  let walls = [];
-  let spots = [];
-  let triggered = [];
-  let p1, p2, treasure;
+let currentTurn = 1;
+let walls = [];
+let spots = [];
+let triggered = [];
+let p1, p2, treasure;
 
-  function applyDifficulty() {
-    const d = difficultySelect.value;
-    if (d === "easy") { size = 11; wallCount = 12; spotCount = 4; }
-    if (d === "medium") { size = 13; wallCount = 20; spotCount = 6; }
-    if (d === "hard") { size = 17; wallCount = 38; spotCount = 9; }
+function applyDifficulty() {
+const d = difficultySelect.value;
+if (d === "easy") { size = 11; wallCount = 12; spotCount = 4; }
+if (d === "medium") { size = 13; wallCount = 20; spotCount = 6; }
+if (d === "hard") { size = 17; wallCount = 38; spotCount = 9; }
 
-    board.style.gridTemplateColumns = `repeat(${size}, 40px)`;
-    board.style.gridTemplateRows = `repeat(${size}, 40px)`;
-  }
+board.style.gridTemplateColumns = `repeat(${size}, 40px)`;
+board.style.gridTemplateRows = `repeat(${size}, 40px)`;
+}
 
-  function show(screen) {
-    titleScreen.style.display = "none";
-    gameScreen.style.display = "none";
-    winScreen.style.display = "none";
-    settingsScreen.style.display = "none";
-    screen.style.display = "flex";
-  }
+function show(screen) {
+titleScreen.style.display = "none";
+gameScreen.style.display = "none";
+winScreen.style.display = "none";
+settingsScreen.style.display = "none";
+screen.style.display = "flex";
+}
 
-  function resetGame() {
-    applyDifficulty();
-    currentTurn = 1;
-    p1 = { x: 0, y: size - 1 };
-    p2 = { x: size - 1, y: size - 1 };
-    treasure = { x: Math.floor(size / 2), y: 0 };
-    triggered = [];
-    generateWalls();
-    generateSpots();
-    drawBoard();
-  }
+function resetGame() {
+applyDifficulty();
+currentTurn = 1;
+p1 = { x: 0, y: size - 1 };
+p2 = { x: size - 1, y: size - 1 };
+treasure = { x: Math.floor(size / 2), y: 0 };
+triggered = [];
+generateWalls();
+generateSpots();
+drawBoard();
+}
 
-  startBtn.onclick = () => {
-    show(gameScreen);
-    resetGame();
-  };
+startBtn.onclick = () => {
+show(gameScreen);
+resetGame();
+};
 
-  settingsBtn.onclick = () => show(settingsScreen);
-  backBtn.onclick = () => show(titleScreen);
+settingsBtn.onclick = () => show(settingsScreen);
+backBtn.onclick = () => show(titleScreen);
 
-  function generateWalls() {
-    walls = [];
-    while (walls.length < wallCount) {
-      let wx = Math.floor(Math.random() * size);
-      let wy = Math.floor(Math.random() * size);
-      if (wy === size - 1) continue;
-      if ((wx === p1.x && wy === p1.y) || (wx === p2.x && wy === p2.y)) continue;
-      if (wx === treasure.x && wy === treasure.y) continue;
-      if (walls.some(w => w.x === wx && w.y === wy)) continue;
-      walls.push({ x: wx, y: wy });
-    }
-  }
+function generateWalls() {
+walls = [];
+while (walls.length < wallCount) {
+let wx = Math.floor(Math.random() * size);
+let wy = Math.floor(Math.random() * size);
+if (wy === size - 1) continue;
+if ((wx === p1.x && wy === p1.y) || (wx === p2.x && wy === p2.y)) continue;
+if (wx === treasure.x && wy === treasure.y) continue;
+if (walls.some(w => w.x === wx && w.y === wy)) continue;
+walls.push({ x: wx, y: wy });
+}
+}
 
-  function generateSpots() {
-    spots = [];
-    while (spots.length < spotCount) {
-      let sx = Math.floor(Math.random() * size);
-      let sy = Math.floor(Math.random() * size);
-      if (sy === size - 1) continue;
-      if (isWall(sx, sy)) continue;
-      if ((sx === p1.x && sy === p1.y) || (sx === p2.x && sy === p2.y)) continue;
-      if (sx === treasure.x && sy === treasure.y) continue;
-      if (spots.some(s => s.x === sx && s.y === sy)) continue;
-      spots.push({ x: sx, y: sy, effect: Math.random() < 0.5 ? -1 : 1 });
-    }
-  }
+function generateSpots() {
+spots = [];
+while (spots.length < spotCount) {
+let sx = Math.floor(Math.random() * size);
+let sy = Math.floor(Math.random() * size);
+if (sy === size - 1) continue;
+if (isWall(sx, sy)) continue;
+if ((sx === p1.x && sy === p1.y) || (sx === p2.x && sy === p2.y)) continue;
+if (sx === treasure.x && sy === treasure.y) continue;
+if (spots.some(s => s.x === sx && s.y === sy)) continue;
+spots.push({ x: sx, y: sy, effect: Math.random() < 0.5 ? -1 : 1 });
+}
+}
 
-  function isWall(x, y) {
-    return walls.some(w => w.x === x && w.y === y);
-  }
+function isWall(x, y) {
+return walls.some(w => w.x === x && w.y === y);
+}
 
-  function spotAt(x, y) {
-    return spots.find(s => s.x === x && s.y === y);
-  }
+function spotAt(x, y) {
+return spots.find(s => s.x === x && s.y === y);
+}
 
-  function triggeredAt(x, y) {
-    return triggered.find(t => t.x === x && t.y === y);
-  }
+function triggeredAt(x, y) {
+return triggered.find(t => t.x === x && t.y === y);
+}
 
-  function drawBoard() {
-    board.innerHTML = "";
-    for (let y = 0; y < size; y++) {
-      for (let x = 0; x < size; x++) {
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        if (isWall(x, y)) cell.classList.add("wall");
+function drawBoard() {
+board.innerHTML = "";
+for (let y = 0; y < size; y++) {
+for (let x = 0; x < size; x++) {
+const cell = document.createElement("div");
+cell.className = "cell";
+if (isWall(x, y)) cell.classList.add("wall");
 
-        const t = triggeredAt(x, y);
-        if (t) cell.classList.add(t.effect === 1 ? "gain" : "lose");
+const t = triggeredAt(x, y);
+if (t) cell.classList.add(t.effect === 1 ? "gain" : "lose");
 
-        if (x === treasure.x && y === treasure.y) cell.textContent = "💰";
-        if (x === p1.x && y === p1.y) cell.textContent = "P1";
-        if (x === p2.x && y === p2.y) cell.textContent = "P2";
-        board.appendChild(cell);
-      }
-    }
-    turnDisplay.textContent = `Player ${currentTurn} Turn`;
-  }
+if (x === treasure.x && y === treasure.y) cell.textContent = "💰";
+if (x === p1.x && y === p1.y) cell.textContent = "P1";
+if (x === p2.x && y === p2.y) cell.textContent = "P2";
+board.appendChild(cell);
+}
+}
+turnDisplay.textContent = `Player ${currentTurn} Turn`;
+}
 
-  function movePlayer(num, direction) {
-    if (num !== currentTurn) return;
+function movePlayer(num, direction) {
+if (num !== currentTurn) return;
 
-    let p = num === 1 ? p1 : p2;
-    let nx = p.x;
-    let ny = p.y;
+let p = num === 1 ? p1 : p2;
+let nx = p.x;
+let ny = p.y;
 
-    if (direction === "up") ny--;
-    if (direction === "down") ny++;
-    if (direction === "left") nx--;
-    if (direction === "right") nx++;
+if (direction === "up") ny--;
+if (direction === "down") ny++;
+if (direction === "left") nx--;
+if (direction === "right") nx++;
 
-    if (nx < 0 || ny < 0 || nx >= size || ny >= size) return;
-    if (isWall(nx, ny)) return;
+if (nx < 0 || ny < 0 || nx >= size || ny >= size) return;
+if (isWall(nx, ny)) return;
 
-    p.x = nx;
-    p.y = ny;
+p.x = nx;
+p.y = ny;
 
-    let spot = spotAt(nx, ny);
-    if (spot && !triggeredAt(nx, ny)) {
-      triggered.push({ x: nx, y: ny, effect: spot.effect });
-      currentTurn = spot.effect === 1 ? num : num === 1 ? 2 : 1;
-      drawBoard();
-      return;
-    }
+let spot = spotAt(nx, ny);
+if (spot && !triggeredAt(nx, ny)) {
+triggered.push({ x: nx, y: ny, effect: spot.effect });
+currentTurn = spot.effect === 1 ? num : num === 1 ? 2 : 1;
+drawBoard();
+return;
+}
 
-    if (p.x === treasure.x && p.y === treasure.y) {
-      winnerText.textContent = `Player ${num} Wins!`;
-      show(settingsScreen);
-      return;
-    }
+if (p.x === treasure.x && p.y === treasure.y) {
+winText.textContent = `Player ${num} Wins!`;
+show(winScreen);
+setTimeout(() => show(settingsScreen), 2000);
+return;
+}
 
-    currentTurn = currentTurn === 1 ? 2 : 1;
-    drawBoard();
-  }
+currentTurn = currentTurn === 1 ? 2 : 1;
+drawBoard();
+}
 
-  document.addEventListener("keydown", e => {
-    const k = e.key.toLowerCase();
-    if (k === "w") movePlayer(currentTurn, "up");
-    if (k === "s") movePlayer(currentTurn, "down");
-    if (k === "a") movePlayer(currentTurn, "left");
-    if (k === "d") movePlayer(currentTurn, "right");
-  });
+document.addEventListener("keydown", e => {
+const k = e.key.toLowerCase();
+if (k === "w") movePlayer(currentTurn, "up");
+if (k === "s") movePlayer(currentTurn, "down");
+if (k === "a") movePlayer(currentTurn, "left");
+if (k === "d") movePlayer(currentTurn, "right");
+});
 
-  show(titleScreen);
+show(titleScreen);
 </script>
 
 </body>
